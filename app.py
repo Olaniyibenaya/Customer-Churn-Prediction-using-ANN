@@ -57,6 +57,17 @@ geo_encoded_df = pd.DataFrame(geo_encoded, columns=onehot_encoder_geo.get_featur
 # Merge everything
 input_data = pd.concat([input_data.reset_index(drop=True), geo_encoded_df], axis=1)
 
+# ✅ Ensure same column order as during training
+expected_columns = scaler.feature_names_in_  # works if you trained scaler in sklearn >=1.0
+missing_cols = [col for col in expected_columns if col not in input_data.columns]
+
+# Add any missing columns with 0s
+for col in missing_cols:
+    input_data[col] = 0
+
+# Reorder columns to match the scaler
+input_data = input_data[expected_columns]
+
 # Scale the data
 input_data_scaled = scaler.transform(input_data)
 
@@ -68,4 +79,5 @@ prediction_proba = prediction[0][0]
 if prediction_proba > 0.5:
     st.success(f'The customer is likely to churn (Probability: {prediction_proba:.2f})')
 else:
+
     st.info(f'The customer is not likely to churn (Probability: {prediction_proba:.2f})')
