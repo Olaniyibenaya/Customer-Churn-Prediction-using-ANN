@@ -57,6 +57,17 @@ geo_encoded_df = pd.DataFrame(geo_encoded, columns=onehot_encoder_geo.get_featur
 # Merge everything
 input_data = pd.concat([input_data.reset_index(drop=True), geo_encoded_df], axis=1)
 
+# ✅ Ensure columns match what the scaler was trained on
+if hasattr(scaler, 'feature_names_in_'):
+    expected_columns = scaler.feature_names_in_
+    # Add any missing columns with 0s
+    for col in expected_columns:
+        if col not in input_data.columns:
+            input_data[col] = 0
+    # Reorder columns
+    input_data = input_data[expected_columns]
+else:
+    st.warning("Scaler has no feature name information; ensure columns are in the same order as training.")
 
 # Reorder columns to match the scaler
 input_data = input_data[expected_columns]
@@ -74,4 +85,5 @@ if prediction_proba > 0.5:
 else:
 
     st.info(f'The customer is not likely to churn (Probability: {prediction_proba:.2f})')
+
 
